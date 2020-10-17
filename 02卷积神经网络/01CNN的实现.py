@@ -1,22 +1,8 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# 详细见：https://www.zybuluo.com/hanbingtao/note/485480
-# =====
-#   
-# ![image.png](attachment:image.png)
-
-# In[11]:
-
-
 import numpy as np
 
 
 # 一：实现卷积核Filter
 # =============
-
-# In[19]:
-
 
 class Filter(object): #其实卷积核就是我们的权值，所谓权值共享就是体现在这里，各个局部视野下使用同一个卷积核（权值矩阵）
     def __init__(self,width,hight,depth):
@@ -39,9 +25,6 @@ class Filter(object): #其实卷积核就是我们的权值，所谓权值共享
 # 二：实现激活函数ReluActivator
 # ========
 
-# In[106]:
-
-
 class ReluActivator(object):
     def relu_func(self,input_): #激活函数
         return max(0,input_)
@@ -55,89 +38,6 @@ class IdentityActivator(object): #f(x) = x 后面梯度检验的时候使用了
     
     def relu_grad(self,output):
         return 1
-
-
-# ![image.png](attachment:image.png)
-# ![image-2.png](attachment:image-2.png)
-
-# 三：实现卷积层ConvLayer
-# =============
-
-# 1:前向传播计算
-# ------
-# ![image.png](attachment:image.png)
-# 
-# 步长为1：
-#   
-# ![image-2.png](attachment:image-2.png)
-#   
-# 步长为2：
-#   
-# ![image-3.png](attachment:image-3.png)
-#   
-# 步长为1与步长为2的差别：
-#   
-# ![image-5.png](attachment:image-5.png)
-#   
-# 如上图，上面是步长为1时的卷积结果，下面是步长为2时的卷积结果。我们可以看出，因为步长为2，得到的feature map跳过了步长为1时相应的部分。
-#   
-# 重点补充：因此，当我们反向计算误差项时，我们可以对步长为S的sensitivity map相应的位置进行补0，将其『还原』成步长为1时的sensitivity map，再用反向传播中式8进行求解。
-# 
-# 2：反向传播
-# -------
-# 1.案例推导：假设输入的大小为3*3，filter大小为2*2，按步长为1卷积，我们将得到2*2的feature map。如下图所示
-#   
-# ![image-7.png](attachment:image-7.png)
-# ![image-8.png](attachment:image-8.png)
-# ![image-9.png](attachment:image-9.png)
-# ![image-10.png](attachment:image-10.png)
-# ![image-11.png](attachment:image-11.png)
-#   
-# 从上面3个例子中，我们不难发现：在步长为1时，计算：
-#   
-# ![image-12.png](attachment:image-12.png)
-#   
-# 相当于，把第l层的sensitive map周围补一圈0，在与180度翻转后（注意：是翻转，不是旋转）的filter进行cross-correlation，就能得到想要结果，如下图所示：
-#   
-# ![image-13.png](attachment:image-13.png)
-#   
-# 当然，对于步长不为1时，我们也有相关的公式，判断填充数量：因为在进行反响传播过程中，也是一次卷积过程，所以我们按照卷积可以推导出：
-#   
-# ![image-14.png](attachment:image-14.png)
-#   
-# 下面接着讨论反向传播步长为1的情况：
-# 因为卷积相当于将filter旋转180度的cross-correlation，因此上图的计算可以用卷积公式（注意：下面公式还是卷积）完美的表达：
-#   
-# ![image-15.png](attachment:image-15.png)
-# ![image-16.png](attachment:image-16.png)
-# ![image-17.png](attachment:image-17.png)
-#   
-# 以上：我们获取的求解δ的最终表达式（公式8）
-# 
-# 3：反向传播输入层深度为D时的误差传递
-# -------
-# ![image-18.png](attachment:image-18.png)
-# ![image-19.png](attachment:image-19.png)
-#   
-# filter数量为N时的误差传递:
-#   
-# ![image-20.png](attachment:image-20.png)
-#   
-# 以上就是卷积层误差项传递的算法。详细参考代码
-# 
-# 4：卷积层filter权重梯度的计算
-# -------
-# ![image-21.png](attachment:image-21.png)
-# ![image-22.png](attachment:image-22.png)
-# ![image-23.png](attachment:image-23.png)
-# ![image-24.png](attachment:image-24.png)
-# 注意：这里同样需要对输出层进行扩展为步长为1的情况，然后统一处理
-#   
-# 上面还是一次卷积操作，只不过又调整了一次输入、输出、卷积核位置。所以卷积操作还是特别重要的！！！！
-#   
-# ![image-25.png](attachment:image-25.png)
-
-# In[131]:
 
 
 class ConvLayer(object):
@@ -269,9 +169,6 @@ class ConvLayer(object):
 # 四：辅助函数（其实全部放入ConvLayer中也可以，但是该类太过臃肿）
 # ======
 
-# In[132]:
-
-
 #一：输入数据填充函数
 def padding(input_array,padding_number):
     if padding_number == 0:
@@ -286,9 +183,6 @@ def padding(input_array,padding_number):
         return pad_array
 
 
-# In[133]:
-
-
 #二：获取输入数据本次用于卷积的区域,i,j为索引次数,都是从0开始---为卷积函数conv做准备
 def get_patch(input_array,i,j,filter_height,filter_width,stride):
     start_i = i*stride;
@@ -297,9 +191,6 @@ def get_patch(input_array,i,j,filter_height,filter_width,stride):
         return input_array[start_i:start_i+filter_height,start_j:start_j+filter_width]
     elif input_array.ndim == 3:
         return input_array[:,start_i:start_i+filter_height,start_j:start_j+filter_width]
-
-
-# In[134]:
 
 
 #三：卷积函数，一次处理一个filter_array,虽然存在多个filter_array，但是是由调用函数进行处理的
@@ -316,16 +207,10 @@ def conv(input_array,filter_array,output_array,stride,bias): #input_array,filter
             output_array[i][j] = (get_patch(input_array,i,j,filter_hight,filter_width,stride)*filter_array).sum()+bias
 
 
-# In[135]:
-
-
 #四：我们的激活函数是针对单个值，而我们的数据是多维，所以我们需要一个函数进行数据转换处理
 def element_wise_op(array,op):
     for i in np.nditer(array,op_flags=["readwrite"]): #数据单个迭代,无论几维，都处理为单个数据处理
         i[...] = op(i)  #[...]表示对原始数据进行修改
-
-
-# In[136]:
 
 
 #五：扩展函数，和填充类似，但是是在中间进行填充（详解见下面的说明）---sensitivity是3维的（filter_number,卷积后高度，卷积后宽度）
@@ -348,29 +233,9 @@ def expand_sensitivity_map(sensitivity_array,input_height,input_width,filter_hei
     return expand_array
 
 
-# 前向传播：（步长1到步长2,缩小了输出大小）
-# ---
-#   
-# ![image.png](attachment:image.png)
-# 
-# 反向传播：（进行逆向扩展，将所有步长统一扩展为步长为1的情况）
-# ---
-#   
-# ![image-2.png](attachment:image-2.png)
-#   
-# 我们需要先进行填充，变为步长为1的矩阵，然后对该矩阵进行填充（填充不在这里实现，具体求解zp方法方式上面已经提及），变为步长为1的方法如下：
-#   
-# ![image-3.png](attachment:image-3.png)
-
-# In[137]:
-
-
 #六：根据上面小标题3,获取l-1层的δ
 def create_delta_array(channel_number,input_height,input_width): #第l-1层实际就是利用l层对输入层l-1处理，求解l-1层的δ
     return np.zeros((channel_number,input_height,input_width))
-
-
-# In[186]:
 
 
 #七：获取一个矩阵中最大元素所在的索引（池化层要用）
@@ -389,9 +254,6 @@ def get_max_index(input_array):
 
 # 五：开始测试上面卷积的实现
 # =======
-
-# In[181]:
-
 
 def init_test():
     a = np.array(
@@ -466,24 +328,10 @@ def test_bp(): #测试反向传播
 #     print(cl.filters[1].bias_grad)
 
 
-# In[182]:
-
-
 test() #测试前向传播
 
 
-# 结果演示：这里输出的是没有经过激活函数处理的第l层输入值，上面test输出的是经过relu处理的
-# -----
-# 
-# ![Alt Text](https://upload-images.jianshu.io/upload_images/2256672-958f31b01695b085.gif) 
-
-# In[183]:
-
-
 test_bp() #测试反向传播,可以打开bp_sensitivity_map中的注释，推导更容易
-
-
-# In[184]:
 
 
 #梯度检测
@@ -536,29 +384,6 @@ gradient_check()
 # 六：池化层
 # ========
 # 无论max pooling还是mean pooling，都没有需要学习的参数。因此，在卷积神经网络的训练中，Pooling层需要做的仅仅是将误差项传递到上一层，而没有梯度的计算。
-#  
-# 1.Max Pooling误差项的传递
-# ---------
-# ![image.png](attachment:image.png)
-# ![image-2.png](attachment:image-2.png)
-# ![image-3.png](attachment:image-3.png)
-# ![image-4.png](attachment:image-4.png)
-# 
-# 2.Mean Pooling误差项的传递
-# ---------
-# ![image-5.png](attachment:image-5.png)
-# ![image-6.png](attachment:image-6.png)
-# ![image-7.png](attachment:image-7.png)
-# ![image-8.png](attachment:image-8.png)
-# 
-# 3.三维下的池化问题
-# --------
-# http://www.ai-start.com/dl2017/html/lesson4-week1.html#header-n399
-#   
-# ![image-9.png](attachment:image-9.png)
-
-# In[200]:
-
 
 class MaxPoolingLayer(object):
     def __init__(self,input_height,input_width,channel_number,filter_height,filter_width,stride):
@@ -590,9 +415,6 @@ class MaxPoolingLayer(object):
                     patch_array = get_patch(input_array[d],i,j,self.filter_height,self.filter_width,self.stride)
                     idx_i,idx_j = get_max_index(patch_array)
                     self.delta_array[d,idx_i+i*self.stride,idx_j+self.stride*j] = sensitivity_array[d,i,j]
-
-
-# In[201]:
 
 
 #池化层测试
@@ -631,13 +453,7 @@ def test_pool_bp():
         a, b, mpl.delta_array))
 
 
-# In[202]:
-
-
 test_pool() #测试池化层前向传播
-
-
-# In[203]:
 
 
 test_pool_bp() #测试池化层反向传播

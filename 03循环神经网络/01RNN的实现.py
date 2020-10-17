@@ -1,18 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# 详细见：https://www.zybuluo.com/hanbingtao/note/541458
-# ====
-# https://zhuanlan.zhihu.com/p/26892413
-
-# In[14]:
-
-
 import numpy as np
-
-
-# In[32]:
-
 
 #激活函数
 class ReluActivator(object):
@@ -29,119 +15,10 @@ class IdentityActivator(object): #f(x) = x 后面梯度检验的时候使用了
     def backward(self,output):
         return 1
 
-
-# In[16]:
-
-
 #补充函数：我们的激活函数是针对单个值，而我们的数据是多维，所以我们需要一个函数进行数据转换处理
 def element_wise_op(array,op):
     for i in np.nditer(array,op_flags=["readwrite"]): #数据单个迭代,无论几维，都处理为单个数据处理
         i[...] = op(i)  #[...]表示对原始数据进行修改
-
-
-# 一：循环神经网络
-# =====
-#   
-# ![image.png](attachment:image.png)
-#   
-# 从后面代码可以知道：其实所有部分都是共用权值W,U的，只不过每一次权值的更新，前面的权值都会产生影响
-#   
-#   
-# 训练算法BPTT
-# ----
-#   
-# ![image-2.png](attachment:image-2.png)
-
-# 二：前向传播
-# ======
-#   
-# ![image.png](attachment:image.png)
-#   
-#   
-# 下面的讲解都是针对这一个时刻进行的。下面的所有向量、矩阵都是针对上图展开的
-# ----
-#   
-# ![image-2.png](attachment:image-2.png)
-#     
-# ![image-3.png](attachment:image-3.png)
-
-# 三：误差项的计算
-# =====
-# 注意：我们所有求解的误差项值都是针对时刻t的（当前时刻），虽然下面公式会涉及到前面其他时刻，但是都是为了辅助当前时刻而求解的。如下：涉及时间的会辅助获取前面时间刻度下的误差，而在层级（不涉及时间的），我们只需要求解当前时刻t下的l-1层误差即可。
-# ----
-#   
-# ![image.png](attachment:image.png)
-#     
-# 每一步的误差项都是有用的，用来后面更新权值梯度。
-#   
-#   
-# （一）沿时间轴往前传递一个时刻（t->t-1)时的规律,求解误差项
-# -----
-#   
-# ![image-8.png](attachment:image-8.png)
-#   
-# ![image-9.png](attachment:image-9.png)
-#   
-# ![image-2.png](attachment:image-2.png)
-#   
-# ![image-3.png](attachment:image-3.png)
-#   
-# ![image-4.png](attachment:image-4.png)
-#   
-# ![image-5.png](attachment:image-5.png)
-#   
-# ![image-6.png](attachment:image-6.png)
-#    
-# 
-# （二）神经网络层级之间的误差传递(l->l-1)
-# -----
-#   
-#   
-# 与前面的时间刻度输出无关（注意），但是当前时刻的误差会传递到前面时刻下，对其他时刻下的l-1层产生影响。
-#   
-# ![image-11.png](attachment:image-11.png)
-#   
-# ![image-7.png](attachment:image-7.png)
-# 
-# （三）对比
-# -----
-# 时间刻度：
-#   
-# ![image-12.png](attachment:image-12.png)
-#   
-# 可以看出，每一个时间刻度下的误差值都与后一个时间刻度有关系 δ\<t-1> = δ\<t> x W x diag[f\`(net\<t-1>)]
-# 注意：f\`(net\<t-1>)实际上是对第state\<t-1>调用激活对象的backward方法
-#   
-# 层级：
-#   
-# ![image-13.png](attachment:image-13.png)
-#   
-# 
-# 可以看出，我们应该先求出时间刻度上δ值，然后求解前面层级的误差。注意：求解的只与当前t时刻有关，与前面时刻的输出无关。
-# ----
-
-# 四：权重梯度的计算
-# ====
-#   
-# 当前时刻是t=6时：
-#   
-# ![image-9.png](attachment:image-9.png)
-#   
-# ![image-6.png](attachment:image-6.png)
-#   
-# ![image-7.png](attachment:image-7.png)
-#   
-# ![image-8.png](attachment:image-8.png)
-
-# ![image.png](attachment:image.png)
-#   
-# ![image-2.png](attachment:image-2.png)
-
-# 五：实现RNN
-# ====
-# ![image.png](attachment:image.png)
-
-# In[47]:
 
 
 class RecurrentLayer(object):
@@ -274,9 +151,6 @@ class RecurrentLayer(object):
 # 六：测试前向传播和反向传播
 # =====
 
-# In[48]:
-
-
 def test():
     l = RecurrentLayer(3, 2, ReluActivator(), 1e-3)
     x, d = data_set()
@@ -286,27 +160,17 @@ def test():
     return l
 
 
-# In[49]:
-
-
 test()
 
 
 # 七：梯度检测
 # ====
 
-# In[20]:
-
-
 def data_set():
     x = [np.array([[1], [2], [3]]),
          np.array([[2], [3], [4]])]
     d = np.array([[1], [2]])
     return x, d
-
-
-# In[54]:
-
 
 def gradient_check():
     """
@@ -362,9 +226,6 @@ def gradient_check():
             expect_grad_u = (err1-err2)/(2*epsilon)
             r1.U[i,j] += epsilon
             print("Weights ---> U(%d,%d): expected:%f - actural:%f = %f"%(i,j,expect_grad_u,r1.gradient_u[i,j],expect_grad_u - r1.gradient_u[i,j]))         
-
-
-# In[55]:
 
 
 gradient_check()

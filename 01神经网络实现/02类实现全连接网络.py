@@ -1,21 +1,8 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# 讲解看01神经网络实现（含反向传播和梯度下降）.ipynb和https://www.zybuluo.com/hanbingtao/note/476663
-#   
-# 这里将前面函数整合为类进行处理
-
-# In[185]:
-
-
 import numpy as np
 
 
 # 一：实现激活类SigmoidActivator
 # ======
-
-# In[186]:
-
 
 class SigmoidActivator(object):
     #实现sigmoid函数
@@ -31,9 +18,6 @@ class SigmoidActivator(object):
 
 # 二：实现全连接类
 # ====
-
-# In[ ]:
-
 
 class FullConnectedLayer(object):
     def __init__(self,input_size,output_size,activator):
@@ -88,9 +72,6 @@ class FullConnectedLayer(object):
 
 # 三：神经网络构建类
 # =======
-
-# In[329]:
-
 
 class Network(object):
     def __init__(self,layers):
@@ -162,10 +143,6 @@ class Network(object):
                     fc.W[i,j] += epsilon
                     print("Weights(%d %d) expected:%f actual:%f expect - actual = :%f"%(i,j,expect_grad,fc.W_grad[i,j],expect_grad-fc.W_grad[i,j]))
                     
-
-
-# In[326]:
-
 
 data_set = np.array([[1,2,1,1,1,1,1,0]])
 labels = np.array([[1,0,0,0,0,0,0,0]])

@@ -1,37 +1,13 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
-#https://www.zybuluo.com/hanbingtao/note/476663（詳細理解誤差項δ的含義，以及在對各個權值求偏导时δ代表什么）
-#https://www.cnblogs.com/ssyfj/p/12820348.html(理論---吴恩达，结合了δ，求解得到Δ梯度值，W = W - lamda*Δ)
-#https://www.cnblogs.com/ssyfj/p/12846147.html（實踐）
-
-
-# In[2]:
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
 import math
 
-
 # 400 × 25 × 10 （不含偏执单元）
-# ![image.png](attachment:image.png)
-
-# In[3]:
-
-
 #加载数据
 data = loadmat("ex4data1.mat")
 X = data['X']
 y = data['y']
-
-
-# In[73]:
-
 
 #数据预处理，在神经网络中，我们的标签需要进行one_hot处理---也可以使用sklearn库函数
 def one_hot(ylabels):
@@ -60,13 +36,6 @@ theta_param = np.concatenate([np.ravel(theta1),np.ravel(theta2)])
 #randidx = np.random.choice(y.shape[0],10)
 #print(y[randidx])
 #print(y_onehot[randidx,:])
-
-
-# one-hot格式
-# ![image.png](attachment:image.png)
-
-# In[74]:
-
 
 #数据可视化
 def displayData(X,ImageW=None,displayNums=100):
@@ -97,17 +66,9 @@ def displayData(X,ImageW=None,displayNums=100):
 #displayData(sample_imgs)
 
 
-# ![image.png](attachment:image.png)
-
-# In[75]:
-
-
 #实现sigmoid函数
 def sigmoid(Z):
     return 1/(1+np.exp(-Z)) 
-
-
-# In[76]:
 
 
 #实现前向传播
@@ -123,9 +84,6 @@ def forward_propagate(X,theta_1,theta_2):
     z3 = a2@theta_2.T
     h = sigmoid(z3)
     return a1,z2,a2,z3,h #全部返回（反向传播可能用的上）
-
-
-# In[77]:
 
 
 #实现代价函数（使用交叉熵，但是使用平方损失更容易理解，后面求解反向传播时会用平方损失来对比求解交叉熵的反向传播）
@@ -152,32 +110,15 @@ def cost(X,y,theta_1,theta_2,lamda=1):
 print(cost(X,y_onehot,theta1,theta2,1))
 
 
-# ![image.png](attachment:image.png)
-
-# In[64]:
-
-
 #下面进行反向传播
 #各种函数求导：平方损失、交叉熵、多累分类https://zhuanlan.zhihu.com/p/99923080
 #sigmoid求导
 def sigmoid_gradient(output): #注意：这里我们在前向传播中获取了输出值，不需要再次计算
     return output*(1-output)
 
-
-# ![image.png](attachment:image.png)
-
-# In[65]:
-
-
 #交叉熵求导,传入标签值和预测值
 def J_gradient(y,y_pred):
     return -y/y_pred+(1-y)/(1-y_pred)
-
-
-# ![image.png](attachment:image.png)
-
-# In[66]:
-
 
 #反向传播实现（下面的截图全部来自下面两篇文章），截图看不懂，就看这两个文章吧，结合着来
 #https://www.cnblogs.com/ssyfj/p/12820348.html无推导，代价求导有出入，但简洁）
@@ -229,9 +170,6 @@ def backprop(theta_param,X,y,input_size,hidden_size,num_labels,lamda=1):
     return J,grad #返回3层中间的两组权值梯度
 
 
-# In[67]:
-
-
 #预测函数
 def predict_new(theta_1,theta_2,X):
     X = np.insert(X,0,1,axis=1)    #插入一列全为1的列向量到X中
@@ -241,9 +179,6 @@ def predict_new(theta_1,theta_2,X):
 
     p = np.argmax(h_2,axis=1)+1
     return p
-
-
-# In[58]:
 
 
 #注意：后面实现了我们自己的梯度下降算法，只不过效果没有这个好，这个用来对比和测试上面算法是否正确
@@ -263,17 +198,10 @@ print('accuracy = {0}%'.format(accuracy*100 ))
 
 # #前向传播和反向传播都使用平方损失时的效果更好
 # -----------
-#   
-# ![image.png](attachment:image.png)
-#   
 # #问题一：如果前向传播使用交叉熵求解代价，使用平方损失求解反向传播，也可以获得不错的效果（但是会出现log溢出）
 # -----------
-#   
 # #问题二：如果前向传播和反向传播都使用交叉熵求解，结果效果反而不如平方损失的效果好，只能到达70%左右的效果....???
 # -----------
-
-# In[68]:
-
 
 #开始实现梯度下降算法
 def minimize(theta_param,X,y,input_size,hidden_size,num_labels,max_iter,lamda=1):
@@ -284,9 +212,6 @@ def minimize(theta_param,X,y,input_size,hidden_size,num_labels,max_iter,lamda=1)
     return theta_param
 
 
-# In[78]:
-
-
 theta_param_new = minimize(theta_param,X,y_onehot,input_size,hidden_size,num_labels,max_iter=1500,lamda=1e-3)
 theta_1_new = theta_param_new[:(input_size + 1) * hidden_size].reshape(hidden_size,(input_size+1))
 theta_2_new = theta_param_new[(input_size + 1) * hidden_size:].reshape(num_labels,(hidden_size + 1))
@@ -295,12 +220,3 @@ y_pred = predict_new(theta_1_new,theta_2_new,X)
 correct = [1 if a==b else 0 for (a,b) in zip(y_pred,y)] #重点：将预测值和原始值进行对比
 accuracy = (sum(map(int,correct))/float(len(correct)))  #找到预测正确的数据/所有数据==百分比
 print('accuracy = {0}%'.format(accuracy*100 ))
-
-
-# ![image.png](attachment:image.png)
-
-# In[ ]:
-
-
-
-
